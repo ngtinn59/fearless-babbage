@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { t } from '../shared/i18n';
 import { useAppState } from '../ui/hooks/useAppState';
 import { ProfilesPage } from './pages/Profiles';
+import { RulesPage } from './pages/Rules';
 import '../ui/styles/base.css';
 
 export type OptionsTab = 'profiles' | 'rules' | 'general' | 'backup';
@@ -102,9 +103,7 @@ export function OptionsApp() {
           <ProfilesPage state={state} updateState={updateState} />
         )}
         {activeTab === 'rules' && (
-          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Tính năng Quản lý Quy tắc đang được kết nối...
-          </div>
+          <RulesPage state={state} updateState={updateState} />
         )}
         {activeTab === 'general' && (
           <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
