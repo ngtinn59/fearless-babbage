@@ -43,6 +43,62 @@ claude -p "Bạn là Tech Lead. Review Task N theo quy trình ở mục 9 của 
 
 (Thay `N` bằng số task. Claude chỉ được đọc code, chạy check/build và sửa duy nhất file này.)
 
+### 0.3 Chế độ NHIỀU AGENT (áp dụng từ Task 2 trở đi; ghi đè 0.1, 0.2 và quy tắc 1, 3 của mục 0 khi mâu thuẫn)
+
+Nhiều agent Antigravity làm song song. Mỗi agent tên `A`, `B`, `C`… do người dùng đặt. Ký hiệu:
+- `MAIN` = thư mục gốc repo (`fearless-babbage`). Luôn ở nhánh `master`, **không ai code trực tiếp trong `MAIN`**.
+- `WT(N)` = worktree riêng của Task N: `..\fearless-babbage-t<N>` (nằm cạnh `MAIN`), nhánh `task/N`.
+
+**Bảng phụ thuộc** (Task N chỉ được nhận khi mọi task ở cột phải đã **merge vào `master`**):
+
+| Task | Cần merge trước |
+|---|---|
+| 2 | — |
+| 3, 4 | 2 |
+| 5 | 4 |
+| 6 | 3, 5 |
+| 7, 9, 10 | 3 |
+| 8, 15 | 6 |
+| 11 | 4, 9, 10 |
+| 12, 14 | 10 |
+| 13 | 4, 10 |
+| 16 | 2 → 15 (tất cả) |
+| 17 | 16 |
+
+- "Task K đã merge" ⇔ `git log master --oneline --grep "^task(K):"` có kết quả.
+- "Task N đã có người nhận" ⇔ nhánh `task/N` đã tồn tại (`git branch --list task/N`).
+
+**Vòng lặp của mỗi agent:**
+
+1. **Chọn task:** trong `MAIN` chạy `git branch --list "task/*"` và đối chiếu bảng phụ thuộc. Chọn **số nhỏ nhất** thỏa: đủ phụ thuộc đã merge **và** chưa có nhánh `task/N`. Không có task nào hợp lệ → **DỪNG**, báo người dùng "đang chờ Task …".
+2. **Nhận task (nguyên tử):** trong `MAIN` chạy `git worktree add ..\fearless-babbage-t<N> -b task/N master`. Lệnh lỗi vì nhánh đã tồn tại → agent khác vừa nhận, quay lại bước 1.
+3. **Chuẩn bị:** trong `WT(N)` chạy `npm install`.
+4. **Làm task** hoàn toàn trong `WT(N)`. Commit `task(N): <tên task>` (có thể nhiều commit, đều bắt đầu bằng `task(N):`).
+5. **Ghi nhật ký vào file riêng** `tasks/task-N.md` (tạo mới, mẫu như mục 7, có `**Trạng thái:** CHỜ REVIEW`, ghi rõ agent nào làm). **Không sửa mục 6, 7, 9 của file này** (tránh xung đột giữa các agent).
+6. **Đồng bộ trước review:** trong `WT(N)`: `git rebase master` → `npm run check` → commit nếu có sửa.
+7. **Gọi review** trong `WT(N)` (cwd là `WT(N)`, timeout ≥ 10 phút):
+   ```powershell
+   claude -p "Bạn là Tech Lead. Review Task N theo quy trình ở mục 9 của CLAUDE_TASK.md. Chế độ nhiều agent: review các commit trong master..HEAD, ghi kết quả vào tasks/task-N.md." --allowedTools "Read" "Grep" "Glob" "Bash(git log:*)" "Bash(git show:*)" "Bash(git diff:*)" "Bash(git status:*)" "Bash(npm run check)" "Bash(npm run build)" "Edit(tasks/**)"
+   ```
+8. Đọc `tasks/task-N.md`:
+   - `🔁 CẦN SỬA` → sửa, commit `task(N): fix review #k`, quay lại bước 6.
+   - `✅ DUYỆT` → commit file `tasks/task-N.md` (`task(N): review approved`), sang bước 9.
+9. **Merge:** `git rebase master` trong `WT(N)` (nếu `master` đã tiến lên) → `npm run check` → trong `MAIN` chạy `git merge --ff-only task/N`.
+   - `merge --ff-only` lỗi vì `master` vừa đổi → lặp lại bước 9.
+   - Rebase có xung đột: chỉ trong `public/_locales/*/messages.json` hoặc `src/background/index.ts` → tự gộp (giữ cả hai phía), chạy check rồi merge. Xung đột ở file khác → gộp xong phải **quay lại bước 7** để review lại.
+10. **Dọn dẹp:** trong `MAIN`: `git worktree remove ..\fearless-babbage-t<N>` (**giữ nhánh** `task/N` làm dấu đã nhận). Quay lại bước 1.
+
+**Luật chống xung đột:**
+- Key i18n mới phải có tiền tố theo khu vực (`popup_`, `profiles_`, `rules_`, `general_`, `backup_`, `menu_`, `notify_`, `common_`) và luôn **thêm vào cuối** `messages.json`.
+- Trong `src/background/index.ts` mỗi task chỉ thêm **một dòng** import + **một dòng** gọi hàm `registerXxx()`; logic đặt trong file riêng của task.
+- Chỉ sửa file thuộc phạm vi task của mình. Cần sửa file của task khác (ví dụ `core/types.ts`) → ghi vào mục **Đề xuất / Câu hỏi** trong `tasks/task-N.md` và DỪNG.
+- `package.json`/`package-lock.json`: chỉ Task 0 được thêm dependency. Cần thêm package → DỪNG và hỏi.
+
+**DỪNG và báo người dùng** (các agent khác vẫn làm tiếp):
+- Bước 1 không có task hợp lệ.
+- Vừa merge xong **Task 6, 11, 15 hoặc 17** (mốc để người dùng tự kiểm tra extension).
+- Cùng một task bị `🔁 CẦN SỬA` lần thứ 3, có câu hỏi ở mục Đề xuất, hoặc lệnh review lỗi.
+
 ---
 
 ## 1. Mục tiêu sản phẩm
@@ -478,6 +534,7 @@ _(chưa có)_
 4. Đối chiếu: đủ tiêu chí nghiệm thu chưa, có vi phạm kiến trúc (mục 3, 4) không, có bug logic không.
 5. Thêm vào cuối mục này một khối theo mẫu dưới. Chỉ dùng `🔁 CẦN SỬA` cho lỗi thật (sai tiêu chí, bug, vi phạm kiến trúc); góp ý nhỏ ghi ở "Gợi ý (không bắt buộc)".
 6. Câu trả lời của mục 8 (nếu có) cũng ghi ở đây.
+7. **Chế độ nhiều agent (mục 0.3):** bước 2 review `git log master..HEAD` / `git diff master...HEAD`; bước 5 ghi khối kết quả vào **cuối `tasks/task-N.md`** thay vì mục này; câu hỏi trong mục Đề xuất của file đó cũng trả lời tại đó. Kiểm tra thêm: agent chỉ sửa file thuộc phạm vi task, tuân thủ luật chống xung đột ở 0.3.
 
 <!-- Mẫu:
 ### Task N: ✅ DUYỆT | 🔁 CẦN SỬA — YYYY-MM-DD (lần review #k)
@@ -496,3 +553,14 @@ _(chưa có)_
   - `vite.config.ts`: dùng `import.meta.dirname` thay `__dirname` cho đúng ESM (hiện chạy được nhờ Vite shim).
   - `package.json`: thêm `"engines": { "node": ">=20" }`.
   - Thiếu `icons` trong manifest và `_locales/vi` là đúng phạm vi Task 1, không tính lỗi.
+
+### Task 1: ✅ DUYỆT — 2026-10-10 (lần review #1)
+- **check/build:** ✅ `npm run check` pass (2 file, 3 test) | ✅ `npm run build`; 4 PNG đúng kích thước 16/32/48/128.
+- **Kiểm tra chạy thật (Claude, Playwright + Chromium, load `dist/` unpacked):** service worker `background.js` chạy; popup và options mở được, không có lỗi console/pageerror; locale `en` → "Smart Proxy Options", locale `vi` → "Cài đặt Smart Proxy"; manifest có đủ icons và command `toggle-proxy`.
+- **Việc phải sửa:** Không có. Đã áp dụng đủ góp ý Task 0 (`.gitattributes`, `import.meta.dirname`, `engines`, sửa hash nhật ký).
+- **Gợi ý (không bắt buộc):**
+  - `<title>` trong `src/popup/index.html` và `src/options/index.html` vẫn là tiếng Anh cố định → đặt `document.title = t('optionsTitle')` trong `main.tsx`, và đặt `document.documentElement.lang = chrome.i18n.getUILanguage()`. Có thể làm ở Task 10.
+  - `tests/unit/i18n.test.ts` gán `globalThis.chrome` mà không trả lại → thêm `afterEach` để xóa, tránh rò sang test khác khi Task 3 thêm `chrome-mock`.
+  - `scripts/gen-icons.mjs`: dùng `sharp(svgBuffer, { density: 384 })` để icon 128px nét hơn (SVG đang render đúng 128px rồi mới resize).
+  - Lưu ý cho Task 16: `@playwright/test` 1.64 cần Chromium bản `1248`, máy chưa có → chạy `npx playwright install chromium` trước khi viết E2E.
+  - Style inline (`style={{...}}`) tạm chấp nhận; Task 10 chuyển sang `tokens.css`/`base.css`.
