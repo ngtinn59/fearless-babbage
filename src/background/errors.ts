@@ -43,6 +43,10 @@ export async function recordProxyError(
     fatal: Boolean(fatal),
   };
 
+  if (typeof chrome === 'undefined' || !chrome.storage?.session) {
+    return;
+  }
+
   // 1. Đọc danh sách errors hiện tại từ storage.session
   const rawSession = await chrome.storage.session.get(SESSION_ERRORS_KEY);
   const currentList: ProxyErrorEntry[] = Array.isArray(rawSession[SESSION_ERRORS_KEY])

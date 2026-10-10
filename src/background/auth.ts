@@ -1,5 +1,6 @@
 import type { ProxyProfile } from '../core/types';
 import { getState } from '../shared/storage';
+import { recordProxyError } from './errors';
 
 export interface AuthChallenger {
   host: string;
@@ -59,6 +60,13 @@ export function handleAuthRequired(
     console.warn(
       `[Smart Proxy] Sai thông tin đăng nhập proxy cho host ${challenger.host}:${challenger.port} (requestId: ${requestId}). Hủy request.`,
     );
+    if (typeof chrome !== 'undefined' && chrome.storage?.session) {
+      recordProxyError(
+        'Sai thông tin đăng nhập',
+        `Máy chủ proxy ${challenger.host}:${challenger.port} từ chối thông tin đăng nhập (requestId: ${requestId})`,
+        true,
+      ).catch(() => {});
+    }
     return { cancel: true };
   }
 
