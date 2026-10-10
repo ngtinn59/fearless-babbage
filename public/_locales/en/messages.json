@@ -4,11 +4,23 @@
     "description": "Extension name"
   },
   "extDescription": {
-    "message": "Smart Proxy Chrome Extension (Manifest V3)",
+    "message": "Fast and simple proxy management for Chrome",
     "description": "Extension description"
   },
   "cmdToggle": {
     "message": "Toggle proxy on/off",
     "description": "Shortcut command description"
+  },
+  "popupTitle": {
+    "message": "Smart Proxy",
+    "description": "Title in popup"
+  },
+  "optionsTitle": {
+    "message": "Smart Proxy Options",
+    "description": "Title in options page"
+  },
+  "optionsSubtitle": {
+    "message": "Manage proxy profiles and routing rules",
+    "description": "Subtitle in options page"
   }
 }

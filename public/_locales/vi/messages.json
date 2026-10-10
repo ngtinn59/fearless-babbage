@@ -1,0 +1,26 @@
+{
+  "extName": {
+    "message": "Smart Proxy",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Quản lý và chuyển đổi proxy thông minh một chạm cho Chrome",
+    "description": "Extension description"
+  },
+  "cmdToggle": {
+    "message": "Bật/tắt proxy",
+    "description": "Shortcut command description"
+  },
+  "popupTitle": {
+    "message": "Smart Proxy",
+    "description": "Title in popup"
+  },
+  "optionsTitle": {
+    "message": "Cài đặt Smart Proxy",
+    "description": "Title in options page"
+  },
+  "optionsSubtitle": {
+    "message": "Quản lý danh sách proxy và quy tắc định tuyến",
+    "description": "Subtitle in options page"
+  }
+}

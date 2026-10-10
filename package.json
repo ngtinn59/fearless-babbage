@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Smart Proxy Chrome Extension (Manifest V3)",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",

@@ -293,7 +293,7 @@ Mọi giá trị do người dùng nhập (pattern, host) phải chèn vào PAC 
   - Vite multi-entry: `src/popup/index.html`, `src/options/index.html`, `src/background/index.ts`. Background phải ra đúng `dist/background.js` (dùng `output.entryFileNames`), các chunk khác vào `assets/`.
   - **Nghiệm thu:** `npm run check` pass với 1 test mẫu; `npm run build` sinh `dist/background.js`, `dist/manifest.json` cùng 2 file HTML.
 
-- [ ] **Task 1 — Manifest, icon, locale, khung trang**
+- [x] **Task 1 — Manifest, icon, locale, khung trang**
   - `public/manifest.json` theo mục 3.3; `public/icons/icon.svg` + `scripts/gen-icons.mjs` sinh 4 PNG.
   - `_locales/en` và `_locales/vi` có tối thiểu `extName`, `extDescription`, `cmdToggle`.
   - Popup và options hiển thị tiêu đề lấy từ i18n; background `console.info` khi khởi động.
@@ -436,7 +436,7 @@ Mọi giá trị do người dùng nhập (pattern, host) phải chèn vào PAC 
 -->
 
 ### Task 0 — Khởi tạo dự án — 2026-10-10
-- **Trạng thái:** CHỜ REVIEW
+- **Trạng thái:** ĐÃ DUYỆT
 - **Đã làm:**
   - Khởi tạo `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `.prettierrc`, `.gitignore`.
   - Thiết lập đầy đủ các scripts: `dev`, `build`, `typecheck`, `lint`, `test`, `test:e2e`, `check`, `icons`, `zip`.
@@ -445,7 +445,21 @@ Mọi giá trị do người dùng nhập (pattern, host) phải chèn vào PAC 
 - **File chính:** `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `eslint.config.js`, `public/manifest.json`, `src/background/index.ts`, `src/popup/index.html`, `src/options/index.html`, `tests/unit/sample.test.ts`.
 - **Kết quả kiểm tra:** `npm run check` ✅ (typecheck, lint, test đều pass) | `npm run build` ✅ sinh đúng `dist/background.js`, `dist/manifest.json`, và 2 file HTML popup/options.
 - **Lệch so với plan (nếu có):** Không có.
-- **Commit:** 59b9bd2
+- **Commit:** 15f8068
+
+### Task 1 — Manifest, icon, locale, khung trang — 2026-10-10
+- **Trạng thái:** CHỜ REVIEW
+- **Đã làm:**
+  - Tạo `public/icons/icon.svg` vector hiện đại và hoàn thiện script `scripts/gen-icons.mjs` dùng `sharp` sinh 4 PNG: `icon16.png`, `icon32.png`, `icon48.png`, `icon128.png`.
+  - Cập nhật `public/manifest.json` theo mục 3.3 với `icons`, `action.default_icon`, `default_locale: en`, commands shortcut.
+  - Tạo bộ ngôn ngữ i18n đầy đủ cho tiếng Anh (`_locales/en/messages.json`) và tiếng Việt (`_locales/vi/messages.json`) với các key: `extName`, `extDescription`, `cmdToggle`, `popupTitle`, `optionsTitle`, `optionsSubtitle`.
+  - Tạo module dùng chung `src/shared/i18n.ts` bọc `chrome.i18n.getMessage` an toàn khi chạy test/SSR.
+  - Xây dựng component khung trang `src/popup/App.tsx` và `src/options/App.tsx` hiển thị tiêu đề từ i18n.
+  - Áp dụng đầy đủ các góp ý từ Tech Lead: thêm `.gitattributes` (LF line endings), dùng `import.meta.dirname` trong `vite.config.ts`, thêm `"engines": { "node": ">=20" }` trong `package.json`, sửa lại commit hash Task 0 thành `15f8068`.
+- **File chính:** `public/manifest.json`, `public/icons/icon.svg`, `scripts/gen-icons.mjs`, `public/_locales/en/messages.json`, `public/_locales/vi/messages.json`, `src/shared/i18n.ts`, `src/popup/App.tsx`, `src/options/App.tsx`, `tests/unit/i18n.test.ts`, `.gitattributes`.
+- **Kết quả kiểm tra:** `npm run check` ✅ (typecheck, lint, 3 unit tests pass) | `npm run icons` ✅ | `npm run build` ✅ sinh đầy đủ `dist/icons/`, `dist/_locales/`, `dist/manifest.json`, `dist/background.js`, các file HTML.
+- **Lệch so với plan (nếu có):** Không có.
+- **Commit:** xem git log task(1)
 
 ---
 
@@ -472,4 +486,13 @@ _(chưa có)_
 - **Gợi ý (không bắt buộc):** ...
 -->
 
-_(chưa có)_
+### Task 0: ✅ DUYỆT — 2026-10-10 (lần review #1)
+- **check/build:** ✅ `npm run check` pass (typecheck, lint, 1 test) | ✅ `npm run build` ra `dist/background.js`, `dist/manifest.json`, `dist/src/{popup,options}/index.html`; đường dẫn trong manifest khớp output; HTML build không có inline script.
+- **Việc phải sửa:** Không có lỗi chặn. Một việc nhỏ làm kèm trong commit Task 1:
+  1. Nhật ký Task 0 ghi `Commit: 59b9bd2` nhưng commit thật là `15f8068` → sửa lại. Từ nay không tự ghi hash của chính commit đang tạo (không thể biết trước); ghi hash của task trước khi viết nhật ký task sau, hoặc ghi `xem git log task(N)`.
+- **Gợi ý (không bắt buộc):**
+  - Thêm `.gitattributes` với `* text=auto eol=lf` (máy đang bật `core.autocrlf=true`, tránh diff rác CRLF/LF).
+  - Trong `background/` **không dùng `import()` động**: helper preload của Vite gọi `document`, sẽ crash trong service worker. Chỉ dùng import tĩnh.
+  - `vite.config.ts`: dùng `import.meta.dirname` thay `__dirname` cho đúng ESM (hiện chạy được nhờ Vite shim).
+  - `package.json`: thêm `"engines": { "node": ">=20" }`.
+  - Thiếu `icons` trong manifest và `_locales/vi` là đúng phạm vi Task 1, không tính lỗi.

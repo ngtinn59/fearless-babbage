@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <linearGradient id="innerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E0E7FF" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#bgGrad)" filter="url(#shadow)" />
+
+  <!-- Outer shield / network orbit -->
+  <circle cx="64" cy="64" r="38" fill="none" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="4" stroke-dasharray="6 4" />
+
+  <!-- Connection lines -->
+  <line x1="64" y1="36" x2="64" y2="92" stroke="url(#innerGrad)" stroke-width="6" stroke-linecap="round" />
+  <line x1="38" y1="64" x2="90" y2="64" stroke="url(#innerGrad)" stroke-width="6" stroke-linecap="round" />
+
+  <!-- Center node -->
+  <circle cx="64" cy="64" r="16" fill="#FFFFFF" />
+  <circle cx="64" cy="64" r="9" fill="#4F46E5" />
+
+  <!-- Satellite nodes -->
+  <circle cx="64" cy="36" r="7" fill="#FFFFFF" />
+  <circle cx="64" cy="92" r="7" fill="#FFFFFF" />
+  <circle cx="38" cy="64" r="7" fill="#FFFFFF" />
+  <circle cx="90" cy="64" r="7" fill="#FFFFFF" />
+</svg>

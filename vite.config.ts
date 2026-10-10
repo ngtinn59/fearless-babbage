@@ -9,9 +9,9 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, 'src/popup/index.html'),
-        options: resolve(__dirname, 'src/options/index.html'),
-        background: resolve(__dirname, 'src/background/index.ts'),
+        popup: resolve(import.meta.dirname, 'src/popup/index.html'),
+        options: resolve(import.meta.dirname, 'src/options/index.html'),
+        background: resolve(import.meta.dirname, 'src/background/index.ts'),
       },
       output: {
         entryFileNames: (chunkInfo) => {

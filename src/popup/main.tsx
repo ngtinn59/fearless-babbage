@@ -1,12 +1,5 @@
 import { render } from 'preact';
-
-function PopupApp() {
-  return (
-    <div>
-      <h1>Smart Proxy</h1>
-    </div>
-  );
-}
+import { PopupApp } from './App';
 
 const root = document.getElementById('app');
 if (root) {
