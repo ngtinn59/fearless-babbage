@@ -18,6 +18,31 @@
 5. Code trong `src/core/` **không được gọi `chrome.*`**: phải là TypeScript thuần để unit test được.
 6. Không dùng inline script, `eval`, `new Function` trong trang extension (CSP của MV3).
 
+### 0.1 Giao thức phối hợp Antigravity ↔ Claude
+
+Vòng lặp cho mỗi task N:
+
+1. **Antigravity** làm Task N → commit `task(N): ...` → thêm mục nhật ký (mục 7) với `**Trạng thái:** CHỜ REVIEW`.
+2. **Antigravity** gọi Claude review bằng lệnh ở mục 0.2 (chạy trong PowerShell tại thư mục gốc repo).
+3. **Claude** ghi kết quả vào mục 9 với một trong hai nhãn:
+   - `Task N: ✅ DUYỆT` → Antigravity sang Task N+1.
+   - `Task N: 🔁 CẦN SỬA` + danh sách việc → Antigravity sửa, commit `task(N): fix review #k`, rồi quay lại bước 2.
+4. Antigravity **chỉ được bắt đầu Task N+1 khi mục 9 có `Task N: ✅ DUYỆT`.**
+
+**Điều kiện DỪNG và chờ người dùng** (không tự làm tiếp):
+- Vừa được duyệt task cuối của một giai đoạn: **Task 3, Task 9, Task 15, Task 17**.
+- Cùng một task bị `🔁 CẦN SỬA` lần thứ 3.
+- Có câu hỏi/đề xuất mới ở mục 8.
+- Lệnh review ở mục 0.2 lỗi hoặc không ghi được kết quả vào mục 9.
+
+### 0.2 Lệnh gọi Claude review
+
+```powershell
+claude -p "Bạn là Tech Lead. Review Task N theo quy trình ở mục 9 của CLAUDE_TASK.md." --allowedTools "Read" "Grep" "Glob" "Bash(git log:*)" "Bash(git show:*)" "Bash(git diff:*)" "Bash(git status:*)" "Bash(npm run check)" "Bash(npm run build)" "Edit(CLAUDE_TASK.md)"
+```
+
+(Thay `N` bằng số task. Claude chỉ được đọc code, chạy check/build và sửa duy nhất file này.)
+
 ---
 
 ## 1. Mục tiêu sản phẩm
@@ -422,4 +447,19 @@ _(chưa có)_
 
 ## 9. Review của Claude
 
-_(Claude ghi kết quả review từng task tại đây: ✅ chấp nhận / 🔁 cần sửa + danh sách việc cần sửa.)_
+**Quy trình review (Claude làm theo khi được gọi review Task N):**
+1. Đọc mô tả + tiêu chí nghiệm thu của Task N (mục 6), Definition of Done (mục 5), mục nhật ký của Task N (mục 7).
+2. Xem các commit `task(N): ...` (`git log --oneline`, `git show`) — chỉ review phần thay đổi của task này.
+3. Chạy `npm run check` và `npm run build`.
+4. Đối chiếu: đủ tiêu chí nghiệm thu chưa, có vi phạm kiến trúc (mục 3, 4) không, có bug logic không.
+5. Thêm vào cuối mục này một khối theo mẫu dưới. Chỉ dùng `🔁 CẦN SỬA` cho lỗi thật (sai tiêu chí, bug, vi phạm kiến trúc); góp ý nhỏ ghi ở "Gợi ý (không bắt buộc)".
+6. Câu trả lời của mục 8 (nếu có) cũng ghi ở đây.
+
+<!-- Mẫu:
+### Task N: ✅ DUYỆT | 🔁 CẦN SỬA — YYYY-MM-DD (lần review #k)
+- **check/build:** ✅/❌
+- **Việc phải sửa:** 1. ... (file:dòng)
+- **Gợi ý (không bắt buộc):** ...
+-->
+
+_(chưa có)_
