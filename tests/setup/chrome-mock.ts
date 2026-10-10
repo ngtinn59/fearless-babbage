@@ -1,9 +1,22 @@
 /**
- * In-memory mock for chrome APIs: storage, proxy.settings, action, runtime.
+ * In-memory mock for chrome APIs: storage, proxy, action, runtime, notifications, webRequest.
  */
 
 type StorageChange = chrome.storage.StorageChange;
 type StorageListener = (changes: { [key: string]: StorageChange }, areaName: string) => void;
+
+export interface ProxyErrorDetails {
+  error: string;
+  details: string;
+  fatal: boolean;
+}
+
+export interface NotificationOptions {
+  type: string;
+  iconUrl?: string;
+  title: string;
+  message: string;
+}
 
 export interface ChromeMockController {
   reset(): void;
@@ -16,6 +29,10 @@ export interface ChromeMockController {
   proxy: {
     getSettings(): chrome.proxy.ProxyConfig | null;
     setLevelOfControl(level: chrome.types.LevelOfControl): void;
+    dispatchProxyError(details: ProxyErrorDetails): void;
+  };
+  notifications: {
+    getCreated(): NotificationOptions[];
   };
   runtime: {
     dispatchInstalled(): void;
@@ -23,7 +40,6 @@ export interface ChromeMockController {
   };
 }
 
-// Backwards-compatible alias for existing tests
 export type ChromeStorageMockController = ChromeMockController;
 
 class MemoryStorageArea {
@@ -135,6 +151,36 @@ class MemoryStorageArea {
   }
 }
 
+class EventDispatcher<T> {
+  private listeners = new Set<(arg: T) => void>();
+
+  addListener(listener: (arg: T) => void): void {
+    this.listeners.add(listener);
+  }
+
+  removeListener(listener: (arg: T) => void): void {
+    this.listeners.delete(listener);
+  }
+
+  hasListener(listener: (arg: T) => void): boolean {
+    return this.listeners.has(listener);
+  }
+
+  dispatch(arg: T): void {
+    for (const l of Array.from(this.listeners)) {
+      try {
+        l(arg);
+      } catch (err) {
+        console.error('Event listener error:', err);
+      }
+    }
+  }
+
+  _reset(): void {
+    this.listeners.clear();
+  }
+}
+
 class StorageChangedEvent {
   private listeners = new Set<StorageListener>();
 
@@ -165,32 +211,11 @@ class StorageChangedEvent {
   }
 }
 
-class RuntimeEvent {
-  private listeners = new Set<() => void>();
-
-  addListener(listener: () => void): void {
-    this.listeners.add(listener);
-  }
-
-  removeListener(listener: () => void): void {
-    this.listeners.delete(listener);
-  }
-
-  dispatch(): void {
-    for (const l of Array.from(this.listeners)) {
-      l();
-    }
-  }
-
-  _reset(): void {
-    this.listeners.clear();
-  }
-}
-
 export function installChromeMock(): ChromeMockController {
   const changedEvent = new StorageChangedEvent();
-  const installedEvent = new RuntimeEvent();
-  const startupEvent = new RuntimeEvent();
+  const installedEvent = new EventDispatcher<void>();
+  const startupEvent = new EventDispatcher<void>();
+  const proxyErrorEvent = new EventDispatcher<ProxyErrorDetails>();
 
   const notify = (changes: Record<string, StorageChange>, areaName: string) => {
     changedEvent.dispatch(changes, areaName);
@@ -204,6 +229,8 @@ export function installChromeMock(): ChromeMockController {
 
   let proxySettingsValue: chrome.proxy.ProxyConfig | null = null;
   let levelOfControl: chrome.types.LevelOfControl = 'controllable_by_this_extension';
+
+  const createdNotifications: NotificationOptions[] = [];
 
   const mockChrome = {
     ...(globalThis.chrome || {}),
@@ -238,10 +265,23 @@ export function installChromeMock(): ChromeMockController {
           proxySettingsValue = null;
         },
       },
+      onProxyError: proxyErrorEvent,
+    },
+    notifications: {
+      async create(options: NotificationOptions): Promise<string> {
+        createdNotifications.push(options);
+        return 'notif-' + createdNotifications.length;
+      },
     },
     runtime: {
       onInstalled: installedEvent,
       onStartup: startupEvent,
+    },
+    i18n: {
+      getMessage(key: string): string {
+        if (key === 'extName') return 'Smart Proxy';
+        return key;
+      },
     },
   };
 
@@ -255,10 +295,12 @@ export function installChromeMock(): ChromeMockController {
       changedEvent._reset();
       installedEvent._reset();
       startupEvent._reset();
+      proxyErrorEvent._reset();
       badgeText = '';
       badgeColor = '';
       proxySettingsValue = null;
       levelOfControl = 'controllable_by_this_extension';
+      createdNotifications.length = 0;
     },
     getRaw(area: 'local' | 'session') {
       return area === 'local' ? localArea._getRaw() : sessionArea._getRaw();
@@ -279,6 +321,10 @@ export function installChromeMock(): ChromeMockController {
       setLevelOfControl: (lvl) => {
         levelOfControl = lvl;
       },
+      dispatchProxyError: (d) => proxyErrorEvent.dispatch(d),
+    },
+    notifications: {
+      getCreated: () => [...createdNotifications],
     },
     runtime: {
       dispatchInstalled: () => installedEvent.dispatch(),
