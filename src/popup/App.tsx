@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { resolveTarget } from '../core/rule-matcher';
+import { toggleProxyMode } from '../core/toggle';
 import type { Mode, Rule } from '../core/types';
 import { sendMessage, type StatusResponse, type TestConnectionResponse } from '../shared/messaging';
 import { t } from '../shared/i18n';
@@ -71,32 +72,14 @@ export function PopupApp() {
 
   // Toggle lớn Bật / Tắt Proxy
   const handleToggleProxy = async () => {
-    if (isProxyActive) {
-      // Đang bật -> Tắt (chuyển về direct), lưu lại lastActiveMode
-      await updateState((prev) => ({
-        ...prev,
-        lastActiveMode: prev.mode.kind !== 'direct' ? prev.mode : prev.lastActiveMode,
-        mode: { kind: 'direct' },
-      }));
-    } else {
-      // Đang tắt -> Bật lại
-      if (state.lastActiveMode) {
-        await updateState((prev) => ({
-          ...prev,
-          mode: prev.lastActiveMode!,
-        }));
-      } else if (state.profiles.length > 0) {
-        await updateState((prev) => ({
-          ...prev,
-          mode: { kind: 'fixed', profileId: prev.profiles[0].id },
-        }));
-      } else {
-        // Chưa có profile nào -> mở trang Options để thêm
-        if (typeof chrome !== 'undefined' && chrome.runtime?.openOptionsPage) {
-          chrome.runtime.openOptionsPage();
-        }
+    const { nextState, shouldOpenOptions } = toggleProxyMode(state);
+    if (shouldOpenOptions) {
+      if (typeof chrome !== 'undefined' && chrome.runtime?.openOptionsPage) {
+        chrome.runtime.openOptionsPage();
       }
+      return;
     }
+    await updateState(() => nextState);
   };
 
   // Chuyển chế độ hoạt động

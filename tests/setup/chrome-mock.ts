@@ -34,6 +34,13 @@ export interface ChromeMockController {
   notifications: {
     getCreated(): NotificationOptions[];
   };
+  contextMenus: {
+    getMenus(): Array<{ id: string; title?: string; parentId?: string; type?: string; contexts?: string[] }>;
+    dispatchClick(info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab): void;
+  };
+  commands: {
+    dispatchCommand(command: string): void;
+  };
   runtime: {
     dispatchInstalled(): void;
     dispatchStartup(): void;
@@ -212,6 +219,36 @@ class StorageChangedEvent {
   }
 }
 
+class ContextMenuClickDispatcher {
+  private listeners = new Set<(info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) => void>();
+
+  addListener(listener: (info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) => void): void {
+    this.listeners.add(listener);
+  }
+
+  removeListener(listener: (info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) => void): void {
+    this.listeners.delete(listener);
+  }
+
+  hasListener(listener: (info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) => void): boolean {
+    return this.listeners.has(listener);
+  }
+
+  dispatch(info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab): void {
+    for (const l of Array.from(this.listeners)) {
+      try {
+        l(info, tab);
+      } catch (err) {
+        console.error('Context menu click listener error:', err);
+      }
+    }
+  }
+
+  _reset(): void {
+    this.listeners.clear();
+  }
+}
+
 type MessageListener = (
   message: unknown,
   sender: chrome.runtime.MessageSender,
@@ -293,6 +330,10 @@ export function installChromeMock(): ChromeMockController {
   const startupEvent = new EventDispatcher<void>();
   const proxyErrorEvent = new EventDispatcher<ProxyErrorDetails>();
   const messageEvent = new MessageEventDispatcher();
+  const contextMenuClickEvent = new ContextMenuClickDispatcher();
+  const commandEvent = new EventDispatcher<string>();
+
+  const createdMenus: Array<{ id: string; title?: string; parentId?: string; type?: string; contexts?: string[] }> = [];
 
   const notify = (changes: Record<string, StorageChange>, areaName: string) => {
     changedEvent.dispatch(changes, areaName);
@@ -358,6 +399,24 @@ export function installChromeMock(): ChromeMockController {
         return messageEvent.dispatch(message);
       },
     },
+    contextMenus: {
+      create(
+        properties: { id: string; title?: string; parentId?: string; type?: string; contexts?: string[] },
+        callback?: () => void,
+      ) {
+        createdMenus.push(properties);
+        if (callback) callback();
+        return properties.id;
+      },
+      async removeAll(callback?: () => void): Promise<void> {
+        createdMenus.length = 0;
+        if (callback) callback();
+      },
+      onClicked: contextMenuClickEvent,
+    },
+    commands: {
+      onCommand: commandEvent,
+    },
     i18n: {
       getMessage(key: string): string {
         if (key === 'extName') return 'Smart Proxy';
@@ -378,6 +437,9 @@ export function installChromeMock(): ChromeMockController {
       startupEvent._reset();
       proxyErrorEvent._reset();
       messageEvent._reset();
+      contextMenuClickEvent._reset();
+      commandEvent._reset();
+      createdMenus.length = 0;
       badgeText = '';
       badgeColor = '';
       proxySettingsValue = null;
@@ -407,6 +469,13 @@ export function installChromeMock(): ChromeMockController {
     },
     notifications: {
       getCreated: () => [...createdNotifications],
+    },
+    contextMenus: {
+      getMenus: () => [...createdMenus],
+      dispatchClick: (info, tab) => contextMenuClickEvent.dispatch(info, tab),
+    },
+    commands: {
+      dispatchCommand: (cmd) => commandEvent.dispatch(cmd),
     },
     runtime: {
       dispatchInstalled: () => installedEvent.dispatch(),
