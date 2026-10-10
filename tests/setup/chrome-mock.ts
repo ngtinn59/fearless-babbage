@@ -37,6 +37,7 @@ export interface ChromeMockController {
   runtime: {
     dispatchInstalled(): void;
     dispatchStartup(): void;
+    dispatchMessage(message: unknown, sender?: Partial<chrome.runtime.MessageSender>): Promise<unknown>;
   };
 }
 
@@ -211,11 +212,87 @@ class StorageChangedEvent {
   }
 }
 
+type MessageListener = (
+  message: unknown,
+  sender: chrome.runtime.MessageSender,
+  sendResponse: (response?: unknown) => void
+) => boolean | void | Promise<unknown>;
+
+class MessageEventDispatcher {
+  private listeners = new Set<MessageListener>();
+
+  addListener(listener: MessageListener): void {
+    this.listeners.add(listener);
+  }
+
+  removeListener(listener: MessageListener): void {
+    this.listeners.delete(listener);
+  }
+
+  hasListener(listener: MessageListener): boolean {
+    return this.listeners.has(listener);
+  }
+
+  async dispatch(
+    message: unknown,
+    sender?: Partial<chrome.runtime.MessageSender>
+  ): Promise<unknown> {
+    const fullSender: chrome.runtime.MessageSender = {
+      id: 'smart-proxy-mock',
+      url: 'chrome-extension://smart-proxy-mock/src/popup/index.html',
+      ...sender,
+    };
+
+    let responded = false;
+    let responseData: unknown = undefined;
+
+    for (const listener of Array.from(this.listeners)) {
+      await new Promise<void>((resolve) => {
+        const sendResponse = (res?: unknown) => {
+          responded = true;
+          responseData = res;
+          resolve();
+        };
+
+        try {
+          const ret = listener(message, fullSender, sendResponse);
+          if (ret === true) {
+            // Asynchronous response expected; sendResponse will call resolve()
+          } else if (ret instanceof Promise) {
+            ret
+              .then((asyncRes) => {
+                if (asyncRes !== undefined && !responded) {
+                  responded = true;
+                  responseData = asyncRes;
+                }
+                resolve();
+              })
+              .catch(() => resolve());
+          } else {
+            resolve();
+          }
+        } catch (e) {
+          console.error('Message listener error:', e);
+          resolve();
+        }
+      });
+      if (responded) break;
+    }
+
+    return responseData;
+  }
+
+  _reset(): void {
+    this.listeners.clear();
+  }
+}
+
 export function installChromeMock(): ChromeMockController {
   const changedEvent = new StorageChangedEvent();
   const installedEvent = new EventDispatcher<void>();
   const startupEvent = new EventDispatcher<void>();
   const proxyErrorEvent = new EventDispatcher<ProxyErrorDetails>();
+  const messageEvent = new MessageEventDispatcher();
 
   const notify = (changes: Record<string, StorageChange>, areaName: string) => {
     changedEvent.dispatch(changes, areaName);
@@ -276,6 +353,10 @@ export function installChromeMock(): ChromeMockController {
     runtime: {
       onInstalled: installedEvent,
       onStartup: startupEvent,
+      onMessage: messageEvent,
+      async sendMessage(message: unknown): Promise<unknown> {
+        return messageEvent.dispatch(message);
+      },
     },
     i18n: {
       getMessage(key: string): string {
@@ -296,6 +377,7 @@ export function installChromeMock(): ChromeMockController {
       installedEvent._reset();
       startupEvent._reset();
       proxyErrorEvent._reset();
+      messageEvent._reset();
       badgeText = '';
       badgeColor = '';
       proxySettingsValue = null;
@@ -329,6 +411,7 @@ export function installChromeMock(): ChromeMockController {
     runtime: {
       dispatchInstalled: () => installedEvent.dispatch(),
       dispatchStartup: () => startupEvent.dispatch(),
+      dispatchMessage: (msg, sender) => messageEvent.dispatch(msg, sender),
     },
   };
 }

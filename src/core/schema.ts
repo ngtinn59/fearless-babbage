@@ -419,7 +419,7 @@ export function validateState(raw: unknown): ValidationResult<AppState> {
   } else {
     for (let i = 0; i < s.rules.length; i++) {
       const r = s.rules[i];
-      const res = validateRule(r, profiles);
+      const res = validateRule(r);
       if (!res.ok) {
         for (const err of res.errors) {
           errors.push({ path: `rules[${i}].${err.path}`, code: err.code });

@@ -68,11 +68,11 @@ export function migrate(raw: unknown): AppState {
       }
     }
 
-    // 3. Sanitize Rules (must only reference existing profiles or direct)
+    // 3. Sanitize Rules
     const validRules: Rule[] = [];
     if (Array.isArray(data.rules)) {
       for (const item of data.rules) {
-        const res = validateRule(item, validProfiles);
+        const res = validateRule(item);
         if (res.ok) {
           validRules.push(res.value);
         }
