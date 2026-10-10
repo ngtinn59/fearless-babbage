@@ -1,16 +1,30 @@
 /**
- * In-memory mock for chrome.storage.local, chrome.storage.session,
- * and chrome.storage.onChanged event dispatcher.
+ * In-memory mock for chrome APIs: storage, proxy.settings, action, runtime.
  */
 
 type StorageChange = chrome.storage.StorageChange;
 type StorageListener = (changes: { [key: string]: StorageChange }, areaName: string) => void;
 
-export interface ChromeStorageMockController {
+export interface ChromeMockController {
   reset(): void;
   getRaw(area: 'local' | 'session'): Record<string, unknown>;
   setRaw(area: 'local' | 'session', key: string, value: unknown): void;
+  action: {
+    getBadgeText(): string;
+    getBadgeBackgroundColor(): string | number[];
+  };
+  proxy: {
+    getSettings(): chrome.proxy.ProxyConfig | null;
+    setLevelOfControl(level: chrome.types.LevelOfControl): void;
+  };
+  runtime: {
+    dispatchInstalled(): void;
+    dispatchStartup(): void;
+  };
 }
+
+// Backwards-compatible alias for existing tests
+export type ChromeStorageMockController = ChromeMockController;
 
 class MemoryStorageArea {
   private store: Record<string, unknown> = {};
@@ -108,7 +122,6 @@ class MemoryStorageArea {
     }
   }
 
-  // Internal test helpers
   _getRaw(): Record<string, unknown> {
     return this.store;
   }
@@ -152,8 +165,32 @@ class StorageChangedEvent {
   }
 }
 
-export function installChromeMock(): ChromeStorageMockController {
+class RuntimeEvent {
+  private listeners = new Set<() => void>();
+
+  addListener(listener: () => void): void {
+    this.listeners.add(listener);
+  }
+
+  removeListener(listener: () => void): void {
+    this.listeners.delete(listener);
+  }
+
+  dispatch(): void {
+    for (const l of Array.from(this.listeners)) {
+      l();
+    }
+  }
+
+  _reset(): void {
+    this.listeners.clear();
+  }
+}
+
+export function installChromeMock(): ChromeMockController {
   const changedEvent = new StorageChangedEvent();
+  const installedEvent = new RuntimeEvent();
+  const startupEvent = new RuntimeEvent();
 
   const notify = (changes: Record<string, StorageChange>, areaName: string) => {
     changedEvent.dispatch(changes, areaName);
@@ -162,12 +199,49 @@ export function installChromeMock(): ChromeStorageMockController {
   const localArea = new MemoryStorageArea('local', notify);
   const sessionArea = new MemoryStorageArea('session', notify);
 
+  let badgeText = '';
+  let badgeColor: string | number[] = '';
+
+  let proxySettingsValue: chrome.proxy.ProxyConfig | null = null;
+  let levelOfControl: chrome.types.LevelOfControl = 'controllable_by_this_extension';
+
   const mockChrome = {
     ...(globalThis.chrome || {}),
     storage: {
       local: localArea,
       session: sessionArea,
       onChanged: changedEvent,
+    },
+    action: {
+      async setBadgeText(details: { text: string }): Promise<void> {
+        badgeText = details.text;
+      },
+      async setBadgeBackgroundColor(details: { color: string | number[] }): Promise<void> {
+        badgeColor = details.color;
+      },
+      async setBadgeTextColor(): Promise<void> {
+        // no-op mock
+      },
+    },
+    proxy: {
+      settings: {
+        async set(details: { value: chrome.proxy.ProxyConfig; scope?: string }): Promise<void> {
+          proxySettingsValue = details.value;
+        },
+        async get(): Promise<{ value: chrome.proxy.ProxyConfig | null; levelOfControl: chrome.types.LevelOfControl }> {
+          return {
+            value: proxySettingsValue,
+            levelOfControl,
+          };
+        },
+        async clear(): Promise<void> {
+          proxySettingsValue = null;
+        },
+      },
+    },
+    runtime: {
+      onInstalled: installedEvent,
+      onStartup: startupEvent,
     },
   };
 
@@ -179,6 +253,12 @@ export function installChromeMock(): ChromeStorageMockController {
       localArea._reset();
       sessionArea._reset();
       changedEvent._reset();
+      installedEvent._reset();
+      startupEvent._reset();
+      badgeText = '';
+      badgeColor = '';
+      proxySettingsValue = null;
+      levelOfControl = 'controllable_by_this_extension';
     },
     getRaw(area: 'local' | 'session') {
       return area === 'local' ? localArea._getRaw() : sessionArea._getRaw();
@@ -189,6 +269,20 @@ export function installChromeMock(): ChromeStorageMockController {
       } else {
         sessionArea._setRaw(key, value);
       }
+    },
+    action: {
+      getBadgeText: () => badgeText,
+      getBadgeBackgroundColor: () => badgeColor,
+    },
+    proxy: {
+      getSettings: () => proxySettingsValue,
+      setLevelOfControl: (lvl) => {
+        levelOfControl = lvl;
+      },
+    },
+    runtime: {
+      dispatchInstalled: () => installedEvent.dispatch(),
+      dispatchStartup: () => startupEvent.dispatch(),
     },
   };
 }
