@@ -3,6 +3,8 @@ import { t } from '../shared/i18n';
 import { useAppState } from '../ui/hooks/useAppState';
 import { ProfilesPage } from './pages/Profiles';
 import { RulesPage } from './pages/Rules';
+import { GeneralPage } from './pages/General';
+import { BackupPage } from './pages/Backup';
 import '../ui/styles/base.css';
 
 export type OptionsTab = 'profiles' | 'rules' | 'general' | 'backup';
@@ -106,14 +108,10 @@ export function OptionsApp() {
           <RulesPage state={state} updateState={updateState} />
         )}
         {activeTab === 'general' && (
-          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Tính năng Cài đặt Chung đang được kết nối...
-          </div>
+          <GeneralPage state={state} updateState={updateState} />
         )}
         {activeTab === 'backup' && (
-          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Tính năng Sao lưu & Khôi phục đang được kết nối...
-          </div>
+          <BackupPage state={state} updateState={updateState} />
         )}
       </main>
 
