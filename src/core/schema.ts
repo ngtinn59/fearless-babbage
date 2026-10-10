@@ -173,7 +173,7 @@ export function validateProfile(
  */
 export function validateTarget(
   raw: unknown,
-  availableProfiles: ProxyProfile[] = [],
+  availableProfiles?: ProxyProfile[],
   pathPrefix = 'target',
 ): ValidationErrorItem[] {
   const errors: ValidationErrorItem[] = [];
@@ -192,7 +192,7 @@ export function validateTarget(
     if (typeof t.profileId !== 'string' || t.profileId.trim().length === 0) {
       errors.push({ path: `${pathPrefix}.profileId`, code: 'INVALID_PROFILE_ID' });
     } else if (
-      availableProfiles.length > 0 &&
+      availableProfiles !== undefined &&
       !availableProfiles.some((p) => p.id === t.profileId)
     ) {
       errors.push({ path: `${pathPrefix}.profileId`, code: 'PROFILE_NOT_FOUND' });
@@ -209,7 +209,7 @@ export function validateTarget(
  */
 export function validateRule(
   raw: unknown,
-  availableProfiles: ProxyProfile[] = [],
+  availableProfiles?: ProxyProfile[],
 ): ValidationResult<Rule> {
   const errors: ValidationErrorItem[] = [];
 
@@ -320,7 +320,7 @@ export function validateSettings(raw: unknown): ValidationResult<Settings> {
  */
 export function validateMode(
   raw: unknown,
-  availableProfiles: ProxyProfile[] = [],
+  availableProfiles?: ProxyProfile[],
   pathPrefix = 'mode',
 ): ValidationErrorItem[] {
   const errors: ValidationErrorItem[] = [];
@@ -339,7 +339,7 @@ export function validateMode(
     if (typeof m.profileId !== 'string' || m.profileId.trim().length === 0) {
       errors.push({ path: `${pathPrefix}.profileId`, code: 'INVALID_PROFILE_ID' });
     } else if (
-      availableProfiles.length > 0 &&
+      availableProfiles !== undefined &&
       !availableProfiles.some((p) => p.id === m.profileId)
     ) {
       errors.push({ path: `${pathPrefix}.profileId`, code: 'PROFILE_NOT_FOUND' });
