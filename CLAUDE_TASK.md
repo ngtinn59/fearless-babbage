@@ -287,7 +287,7 @@ Mọi giá trị do người dùng nhập (pattern, host) phải chèn vào PAC 
 
 ### Giai đoạn A — Nền móng
 
-- [ ] **Task 0 — Khởi tạo dự án**
+- [x] **Task 0 — Khởi tạo dự án**
   - Tạo `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `eslint.config.js`, `.prettierrc`, `.gitignore` (`node_modules`, `dist`, `release`, `test-results`, `playwright-report`).
   - Scripts: `dev` (`vite build --watch`), `build`, `typecheck` (`tsc --noEmit`), `lint`, `test` (`vitest run`), `test:e2e`, `check`, `icons`, `zip`.
   - Vite multi-entry: `src/popup/index.html`, `src/options/index.html`, `src/background/index.ts`. Background phải ra đúng `dist/background.js` (dùng `output.entryFileNames`), các chunk khác vào `assets/`.
@@ -435,7 +435,17 @@ Mọi giá trị do người dùng nhập (pattern, host) phải chèn vào PAC 
 - **Commit:** <hash>
 -->
 
-_(chưa có)_
+### Task 0 — Khởi tạo dự án — 2026-10-10
+- **Trạng thái:** CHỜ REVIEW
+- **Đã làm:**
+  - Khởi tạo `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `.prettierrc`, `.gitignore`.
+  - Thiết lập đầy đủ các scripts: `dev`, `build`, `typecheck`, `lint`, `test`, `test:e2e`, `check`, `icons`, `zip`.
+  - Cấu hình Vite multi-entry với entry background (`dist/background.js`), popup (`dist/src/popup/index.html`), options (`dist/src/options/index.html`) và `public/manifest.json`.
+  - Cài đặt các phiên bản stable thực tế: `preact` 10.29.8, `vite` 6.4.4, `@preact/preset-vite` 2.10.6, `typescript` 5.9.3, `vitest` 3.2.7, `eslint` 9.39.5, `typescript-eslint` 8.71.1, `prettier` 3.9.9, `@playwright/test` 1.64.0, `proxy-chain` 2.7.1, `sharp` 0.33.5, `@types/chrome` 0.0.308.
+- **File chính:** `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `eslint.config.js`, `public/manifest.json`, `src/background/index.ts`, `src/popup/index.html`, `src/options/index.html`, `tests/unit/sample.test.ts`.
+- **Kết quả kiểm tra:** `npm run check` ✅ (typecheck, lint, test đều pass) | `npm run build` ✅ sinh đúng `dist/background.js`, `dist/manifest.json`, và 2 file HTML popup/options.
+- **Lệch so với plan (nếu có):** Không có.
+- **Commit:** 59b9bd2
 
 ---
 
