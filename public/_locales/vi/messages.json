@@ -22,5 +22,188 @@
   "optionsSubtitle": {
     "message": "Quản lý danh sách proxy và quy tắc định tuyến",
     "description": "Subtitle in options page"
+  },
+  "modeDirect": {
+    "message": "Trực tiếp (Không dùng Proxy)"
+  },
+  "modeSystem": {
+    "message": "Proxy Hệ Thống"
+  },
+  "modeAuto": {
+    "message": "Tự động (PAC / Quy tắc)"
+  },
+  "modeFixed": {
+    "message": "Proxy Cố Định"
+  },
+  "proxyEnabled": {
+    "message": "Đang Bật Proxy"
+  },
+  "proxyDisabled": {
+    "message": "Đang Tắt Proxy"
+  },
+  "currentTab": {
+    "message": "Tab Hiện Tại"
+  },
+  "routedVia": {
+    "message": "Đang đi qua"
+  },
+  "routeThrough": {
+    "message": "Đi qua"
+  },
+  "alwaysDirect": {
+    "message": "Luôn trực tiếp"
+  },
+  "testConnection": {
+    "message": "Kiểm tra kết nối"
+  },
+  "testingConnection": {
+    "message": "Đang kiểm tra..."
+  },
+  "connectionOk": {
+    "message": "Kết nối tốt"
+  },
+  "connectionFailed": {
+    "message": "Kết nối thất bại"
+  },
+  "latency": {
+    "message": "Độ trễ"
+  },
+  "publicIp": {
+    "message": "IP công khai"
+  },
+  "clearErrors": {
+    "message": "Xóa danh sách lỗi"
+  },
+  "recentErrors": {
+    "message": "Lỗi gần đây"
+  },
+  "openOptions": {
+    "message": "Cài đặt"
+  },
+  "tabProfiles": {
+    "message": "Danh sách Proxy"
+  },
+  "tabRules": {
+    "message": "Quy tắc định tuyến"
+  },
+  "tabGeneral": {
+    "message": "Chung"
+  },
+  "tabBackup": {
+    "message": "Sao lưu & Khôi phục"
+  },
+  "addProfile": {
+    "message": "Thêm Proxy"
+  },
+  "editProfile": {
+    "message": "Sửa Proxy"
+  },
+  "deleteProfile": {
+    "message": "Xóa Proxy"
+  },
+  "profileName": {
+    "message": "Tên Profile"
+  },
+  "color": {
+    "message": "Màu sắc"
+  },
+  "scheme": {
+    "message": "Giao thức"
+  },
+  "host": {
+    "message": "Máy chủ / IP"
+  },
+  "port": {
+    "message": "Cổng (Port)"
+  },
+  "username": {
+    "message": "Tên người dùng"
+  },
+  "password": {
+    "message": "Mật khẩu"
+  },
+  "bypassList": {
+    "message": "Danh sách bỏ qua (Bypass)"
+  },
+  "addRule": {
+    "message": "Thêm quy tắc"
+  },
+  "editRule": {
+    "message": "Sửa quy tắc"
+  },
+  "deleteRule": {
+    "message": "Xóa quy tắc"
+  },
+  "pattern": {
+    "message": "Mẫu khớp (Pattern)"
+  },
+  "matchType": {
+    "message": "Loại khớp"
+  },
+  "target": {
+    "message": "Đích đến"
+  },
+  "note": {
+    "message": "Ghi chú"
+  },
+  "status": {
+    "message": "Trạng thái"
+  },
+  "orphanRuleWarning": {
+    "message": "Profile chỉ định không còn tồn tại"
+  },
+  "theme": {
+    "message": "Giao diện"
+  },
+  "themeSystem": {
+    "message": "Theo hệ thống"
+  },
+  "themeLight": {
+    "message": "Sáng"
+  },
+  "themeDark": {
+    "message": "Tối"
+  },
+  "bypassLocal": {
+    "message": "Bỏ qua địa chỉ cục bộ / nội bộ (localhost, intranet)"
+  },
+  "notifyOnError": {
+    "message": "Thông báo khi kết nối proxy gặp lỗi"
+  },
+  "healthCheckUrl": {
+    "message": "URL kiểm tra kết nối"
+  },
+  "ipCheckUrl": {
+    "message": "URL kiểm tra IP công khai"
+  },
+  "exportBackup": {
+    "message": "Xuất bản sao lưu JSON"
+  },
+  "importBackup": {
+    "message": "Nhập bản sao lưu JSON"
+  },
+  "resetDefaults": {
+    "message": "Khôi phục mặc định"
+  },
+  "confirm": {
+    "message": "Xác nhận"
+  },
+  "cancel": {
+    "message": "Hủy"
+  },
+  "save": {
+    "message": "Lưu"
+  },
+  "delete": {
+    "message": "Xóa"
+  },
+  "actions": {
+    "message": "Thao tác"
+  },
+  "noProfiles": {
+    "message": "Chưa có cấu hình proxy nào."
+  },
+  "noRules": {
+    "message": "Chưa có quy tắc định tuyến nào."
   }
 }

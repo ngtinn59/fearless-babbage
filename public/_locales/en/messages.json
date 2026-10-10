@@ -22,5 +22,188 @@
   "optionsSubtitle": {
     "message": "Manage proxy profiles and routing rules",
     "description": "Subtitle in options page"
+  },
+  "modeDirect": {
+    "message": "Direct (No Proxy)"
+  },
+  "modeSystem": {
+    "message": "System Proxy"
+  },
+  "modeAuto": {
+    "message": "Auto PAC Rules"
+  },
+  "modeFixed": {
+    "message": "Fixed Profile"
+  },
+  "proxyEnabled": {
+    "message": "Proxy Enabled"
+  },
+  "proxyDisabled": {
+    "message": "Proxy Disabled"
+  },
+  "currentTab": {
+    "message": "Current Tab"
+  },
+  "routedVia": {
+    "message": "Routing via"
+  },
+  "routeThrough": {
+    "message": "Route through"
+  },
+  "alwaysDirect": {
+    "message": "Always Direct"
+  },
+  "testConnection": {
+    "message": "Test Connection"
+  },
+  "testingConnection": {
+    "message": "Testing..."
+  },
+  "connectionOk": {
+    "message": "Connected"
+  },
+  "connectionFailed": {
+    "message": "Connection Failed"
+  },
+  "latency": {
+    "message": "Latency"
+  },
+  "publicIp": {
+    "message": "Public IP"
+  },
+  "clearErrors": {
+    "message": "Clear Errors"
+  },
+  "recentErrors": {
+    "message": "Recent Errors"
+  },
+  "openOptions": {
+    "message": "Settings"
+  },
+  "tabProfiles": {
+    "message": "Profiles"
+  },
+  "tabRules": {
+    "message": "Rules"
+  },
+  "tabGeneral": {
+    "message": "General"
+  },
+  "tabBackup": {
+    "message": "Backup & Restore"
+  },
+  "addProfile": {
+    "message": "Add Profile"
+  },
+  "editProfile": {
+    "message": "Edit Profile"
+  },
+  "deleteProfile": {
+    "message": "Delete Profile"
+  },
+  "profileName": {
+    "message": "Profile Name"
+  },
+  "color": {
+    "message": "Color"
+  },
+  "scheme": {
+    "message": "Protocol"
+  },
+  "host": {
+    "message": "Host / IP"
+  },
+  "port": {
+    "message": "Port"
+  },
+  "username": {
+    "message": "Username"
+  },
+  "password": {
+    "message": "Password"
+  },
+  "bypassList": {
+    "message": "Bypass List"
+  },
+  "addRule": {
+    "message": "Add Rule"
+  },
+  "editRule": {
+    "message": "Edit Rule"
+  },
+  "deleteRule": {
+    "message": "Delete Rule"
+  },
+  "pattern": {
+    "message": "Pattern"
+  },
+  "matchType": {
+    "message": "Match Type"
+  },
+  "target": {
+    "message": "Target"
+  },
+  "note": {
+    "message": "Note"
+  },
+  "status": {
+    "message": "Status"
+  },
+  "orphanRuleWarning": {
+    "message": "Target profile no longer exists"
+  },
+  "theme": {
+    "message": "Theme"
+  },
+  "themeSystem": {
+    "message": "Follow System"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "bypassLocal": {
+    "message": "Bypass local / intranet addresses"
+  },
+  "notifyOnError": {
+    "message": "Show notification on proxy error"
+  },
+  "healthCheckUrl": {
+    "message": "Health Check URL"
+  },
+  "ipCheckUrl": {
+    "message": "Public IP Check URL"
+  },
+  "exportBackup": {
+    "message": "Export JSON Backup"
+  },
+  "importBackup": {
+    "message": "Import JSON Backup"
+  },
+  "resetDefaults": {
+    "message": "Reset to Defaults"
+  },
+  "confirm": {
+    "message": "Confirm"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "actions": {
+    "message": "Actions"
+  },
+  "noProfiles": {
+    "message": "No proxy profiles yet."
+  },
+  "noRules": {
+    "message": "No routing rules yet."
   }
 }
